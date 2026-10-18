@@ -1,0 +1,16 @@
+name: C++ Build Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Compile C++17 program
+        run: g++ -std=c++17 -Wall -Wextra -pedantic main.cpp -o railway
