@@ -26,7 +26,7 @@ The application is designed as a standalone system using local text files for pe
 - Follow a modular, layered architecture to improve maintainability and testability.
 
 
-## Team Members and Responsibilities
+## Team Members
 
 | Team Member | Role | SRN |
 |---|---|---|
