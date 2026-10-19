@@ -13,4 +13,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Compile C++17 program
-        run: g++ -std=c++17 -Wall -Wextra -pedantic main.cpp -o railway
+        run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude src/*.cpp -o railway

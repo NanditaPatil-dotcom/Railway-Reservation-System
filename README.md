@@ -43,3 +43,31 @@ The application is designed as a standalone system using local text files for pe
 | Sprint 1 | 19–23 October 2026 | Initial implementation and working product |
 | Sprint 2 | 26–30 October 2026 | Remaining features, integration, testing, and documentation |
 
+## Architecture
+
+The Railway Reservation System follows a three-layer architecture defined in the Software Architecture and Design Specification.
+
+- **Presentation Layer:** `UserInterface` handles menus, prompts, confirmations, and messages.
+- **Business Logic Layer:** `ValidationModule`, `TrainModule`, `SearchModule`, `SeatModule`, `FareModule`, `TicketModule`, `BookingModule`, `CancellationModule`, `RefundModule`, and `AdminModule`.
+- **Data Access Layer:** `FileModule` is the only module responsible for persistent file access.
+
+## Project Structure
+
+- `include/` — Header files, public interfaces, and shared data types.
+- `src/` — Module implementations and the application entry point.
+- `tests/` — Module-level testing documentation and future tests.
+- `.github/workflows/` — Automated build checks.
+
+## Build
+
+Compile with a C++17-compatible compiler:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude src/*.cpp -o railway
+```
+
+Run the setup application:
+
+```bash
+./railway
+```
