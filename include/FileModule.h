@@ -7,7 +7,10 @@
 
 class FileModule {
 public:
-    LoadReport loadAll();
+    LoadReport loadAll(
+        std::vector<Train>& trains,
+        std::vector<Booking>& bookings
+    );
 
     Status saveTrains(const std::vector<Train>& trains);
 
