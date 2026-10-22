@@ -14,3 +14,6 @@ jobs:
 
       - name: Compile C++17 program
         run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude src/*.cpp -o railway
+
+      - name: Run ValidationModule tests
+        run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_validation.cpp src/ValidationModule.cpp -o test_validation && ./test_validation
