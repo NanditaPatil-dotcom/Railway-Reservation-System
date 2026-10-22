@@ -42,6 +42,32 @@ void displayTrains(const std::vector<Train>& trains) {
     }
 }
 
+void displayTrainDetails(const Train& train) {
+    const int booked = train.totalSeats - train.availableSeats;
+
+    std::cout << "\nTrain Details\n"
+              << std::string(40, '-') << '\n'
+              << std::left
+              << std::setw(18) << "Train Number"    << ": " << train.trainNo << '\n'
+              << std::setw(18) << "Train Name"      << ": " << train.name << '\n'
+              << std::setw(18) << "Route"           << ": " << train.source
+              << " -> " << train.destination << '\n'
+              << std::setw(18) << "Departure"       << ": " << train.departure << '\n'
+              << std::setw(18) << "Arrival"         << ": " << train.arrival << '\n'
+              << std::setw(18) << "Fare per seat"   << ": Rs. " << std::fixed
+              << std::setprecision(2) << train.fare << '\n'
+              << std::string(40, '-') << '\n'
+              << std::setw(18) << "Total seats"     << ": " << train.totalSeats << '\n'
+              << std::setw(18) << "Booked seats"    << ": " << booked << '\n'
+              << std::setw(18) << "Available seats" << ": " << train.availableSeats << '\n';
+
+    if (train.availableSeats > 0) {
+        std::cout << std::setw(18) << "Availability" << ": Seats available\n";
+    } else {
+        std::cout << std::setw(18) << "Availability" << ": Sold out - no seats available\n";
+    }
+}
+
 bool readInteger(const std::string& prompt, int& value) {
     std::cout << prompt;
     std::string input;
@@ -76,6 +102,7 @@ void UserInterface::run() {
         std::cout << "\n1. View all trains\n"
                   << "2. Search by source and destination\n"
                   << "3. Search by train number\n"
+                  << "4. View train details and seat availability\n"
                   << "0. Exit\n";
         int choice = -1;
         if (!readInteger("Choose an option: ", choice)) {
@@ -107,8 +134,22 @@ void UserInterface::run() {
                 continue;
             }
             displayTrains(search.byTrainNo(trainNo));
+        } else if (choice == 4) {
+            int trainNo = 0;
+            if (!readInteger("Train number: ", trainNo)) continue;
+            if (trainNo <= 0) {
+                std::cout << "Train number must be a positive whole number.\n";
+                continue;
+            }
+            Train train;
+            if (trainModule.findByNumber(trainNo, train) != Status::OK) {
+                std::cout << "Train " << trainNo << " was not found. "
+                          << "Check the train number and try again.\n";
+                continue;
+            }
+            displayTrainDetails(train);
         } else {
-            std::cout << "Choose 0, 1, 2, or 3.\n";
+            std::cout << "Choose 0, 1, 2, 3, or 4.\n";
         }
     }
 }
