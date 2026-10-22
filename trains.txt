@@ -1,0 +1,10 @@
+12627|Karnataka Express|Bengaluru|New Delhi|19:20|06:30|1850.50|120
+12628|Karnataka Express|New Delhi|Bengaluru|21:15|09:00|1850.50|120
+22692|Rajdhani Express|Bengaluru|New Delhi|20:00|05:45|2650.00|60
+12028|Shatabdi Express|Bengaluru|Chennai|06:00|11:00|950.00|80
+12608|Lalbagh Express|Bengaluru|Chennai|06:30|12:15|780.00|100
+12657|Chennai Mail|Bengaluru|Chennai|23:45|05:30|520.00|110
+16217|Mysuru Express|Bengaluru|Mysuru|07:15|09:45|210.00|150
+12785|Kacheguda Express|Bengaluru|Hyderabad|18:30|07:10|890.00|100
+11301|Udyan Express|Bengaluru|Mumbai|08:00|11:30|1450.00|120
+17301|Dharwad Express|Bengaluru|Hubballi|21:30|07:00|430.00|5
