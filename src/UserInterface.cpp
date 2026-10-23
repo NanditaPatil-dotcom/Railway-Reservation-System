@@ -1,4 +1,3 @@
-
 #include "UserInterface.h"
 
 #include "BookingModule.h"
@@ -12,7 +11,6 @@
 #include <cctype>
 #include <iomanip>
 #include <iostream>
-#include <limits>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -142,7 +140,11 @@ bool readPassenger(Passenger& passenger) {
     return true;
 }
 
-void handleBooking(BookingModule& bookingModule) {
+// B07: Display the complete confirmation after a successful booking.
+void handleBooking(
+    BookingModule& bookingModule,
+    const TrainModule& trainModule
+) {
     int trainNo = 0;
 
     if (!readInteger("Train number: ", trainNo)) {
@@ -174,30 +176,70 @@ void handleBooking(BookingModule& bookingModule) {
     );
 
     if (status == Status::OK) {
-        std::cout << "\nBooking successful!\n"
-                  << std::string(35, '-') << '\n'
-                  << "PNR: " << createdBooking.pnr << '\n'
-                  << "Train number: " << createdBooking.trainNo << '\n'
-                  << "Passenger: " << createdBooking.passenger.name << '\n'
-                  << "Seat number: " << createdBooking.seatNo << '\n'
-                  << "Fare: Rs. " << std::fixed << std::setprecision(2)
-                  << createdBooking.fare << '\n'
-                  << std::string(35, '-') << '\n';
+        Train bookedTrain;
+
+        const bool trainFound =
+            trainModule.findByNumber(
+                createdBooking.trainNo,
+                bookedTrain
+            ) == Status::OK;
+
+        std::cout
+            << "\n========================================\n"
+            << "           BOOKING CONFIRMED\n"
+            << "========================================\n"
+            << "PNR           : " << createdBooking.pnr << '\n'
+            << "Passenger     : "
+            << createdBooking.passenger.name << '\n'
+            << "Age           : "
+            << createdBooking.passenger.age << '\n'
+            << "Gender        : "
+            << createdBooking.passenger.gender << '\n'
+            << "Contact       : "
+            << createdBooking.passenger.contact << '\n'
+            << "Train Number  : "
+            << createdBooking.trainNo << '\n';
+
+        if (trainFound) {
+            std::cout
+                << "Train Name    : " << bookedTrain.name << '\n'
+                << "Source        : " << bookedTrain.source << '\n'
+                << "Destination   : " << bookedTrain.destination << '\n'
+                << "Departure     : " << bookedTrain.departure << '\n'
+                << "Arrival       : " << bookedTrain.arrival << '\n';
+        }
+
+        std::cout
+            << "Seat Number   : " << createdBooking.seatNo << '\n'
+            << "Booking Date  : " << createdBooking.bookingDate << '\n'
+            << "Fare          : Rs. "
+            << std::fixed << std::setprecision(2)
+            << createdBooking.fare << '\n'
+            << "Status        : " << createdBooking.status << '\n'
+            << "========================================\n";
     } else if (status == Status::INVALID_INPUT) {
-        std::cout << "Invalid train number or passenger details.\n";
+        std::cout
+            << "Invalid train number or passenger details.\n";
     } else if (status == Status::TRAIN_NOT_FOUND) {
-        std::cout << "Train not found. Check the train number.\n";
+        std::cout
+            << "Train not found. Check the train number.\n";
     } else if (status == Status::NO_SEATS) {
-        std::cout << "No seats are available on this train.\n";
+        std::cout
+            << "No seats are available on this train.\n";
+    } else if (status == Status::PNR_LIMIT_REACHED) {
+        std::cout
+            << "Booking could not be completed because no new PNRs are available.\n";
     } else if (status == Status::FILE_ERROR) {
-        std::cout << "Booking could not be saved. Please retry.\n";
+        std::cout
+            << "Booking could not be saved. Please retry.\n";
     } else {
-        std::cout << "Booking failed. Status code: "
-                  << static_cast<int>(status) << '\n';
+        std::cout
+            << "Booking failed. Status code: "
+            << static_cast<int>(status) << '\n';
     }
 }
 
-} // namespace
+}  // namespace
 
 void UserInterface::run() {
     FileModule files;
@@ -211,8 +253,8 @@ void UserInterface::run() {
     SearchModule search(trainModule);
 
     ValidationModule validation;
-    FareModule fares;
-    TicketModule tickets;
+    FareModule fares(trainModule);
+    TicketModule tickets(bookings);
 
     BookingModule bookingModule(
         trainModule,
@@ -325,14 +367,15 @@ void UserInterface::run() {
             displayTrainDetails(train);
 
         } else if (choice == 5) {
-            handleBooking(bookingModule);
+            handleBooking(bookingModule, trainModule);
 
             if (!std::cin) {
                 return;
             }
 
         } else {
-            std::cout << "Choose 0, 1, 2, 3, 4, or 5.\n";
+            std::cout
+                << "Choose 0, 1, 2, 3, 4, or 5.\n";
         }
     }
 }
