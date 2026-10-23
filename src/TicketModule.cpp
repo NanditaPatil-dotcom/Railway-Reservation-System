@@ -1,3 +1,9 @@
 #include "TicketModule.h"
 
-// TicketModule implementation will be added in its assigned task.
+#include <string>
+
+// Temporary fallback for B06 integration.
+// B07 should implement the actual PNR generation.
+std::string TicketModule::generatePNR() const {
+    return "";
+}
