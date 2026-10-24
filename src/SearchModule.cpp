@@ -31,12 +31,16 @@ std::vector<Train> SearchModule::bySourceDest(
     const std::string wantedSource = normalize(source);
     const std::string wantedDestination = normalize(destination);
     std::vector<Train> matches;
-    if (wantedSource.empty() || wantedDestination.empty()) {
+    // Either field may be left blank ("any"), but not both.
+    if (wantedSource.empty() && wantedDestination.empty()) {
         return matches;
     }
     for (const Train& train : trains_.list()) {
-        if (normalize(train.source) == wantedSource &&
-            normalize(train.destination) == wantedDestination) {
+        const bool sourceOk = wantedSource.empty() ||
+            normalize(train.source) == wantedSource;
+        const bool destinationOk = wantedDestination.empty() ||
+            normalize(train.destination) == wantedDestination;
+        if (sourceOk && destinationOk) {
             matches.push_back(train);
         }
     }

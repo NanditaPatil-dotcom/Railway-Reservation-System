@@ -306,21 +306,21 @@ void UserInterface::run() {
             std::string source;
             std::string destination;
 
-            std::cout << "Source: ";
+            std::cout << "Source (blank = any): ";
             if (!std::getline(std::cin, source)) {
                 return;
             }
 
-            std::cout << "Destination: ";
+            std::cout << "Destination (blank = any): ";
             if (!std::getline(std::cin, destination)) {
                 return;
             }
 
             if (source.find('|') != std::string::npos ||
                 destination.find('|') != std::string::npos ||
-                source.empty() || destination.empty()) {
+                (source.empty() && destination.empty())) {
                 std::cout
-                    << "Enter a non-empty source and destination "
+                    << "Enter a source, a destination, or both, "
                     << "without the '|' character.\n";
                 continue;
             }
