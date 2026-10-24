@@ -1,8 +1,6 @@
 
 #include "BookingModule.h"
 
-#include <atomic>
-#include <chrono>
 #include <cmath>
 #include <ctime>
 #include <iomanip>
@@ -21,34 +19,6 @@ bool pnrExists(const std::vector<Booking>& bookings,
         }
     }
     return false;
-}
-
-std::string generateFallbackPNR(
-    const std::vector<Booking>& bookings
-) {
-    static std::atomic<unsigned long long> sequence{0};
-
-    for (int attempt = 0; attempt < 1000; ++attempt) {
-        const auto now =
-            std::chrono::steady_clock::now()
-                .time_since_epoch()
-                .count();
-
-        const unsigned long long value =
-            (static_cast<unsigned long long>(now) +
-             sequence.fetch_add(1)) % 10000000000ULL;
-
-        std::ostringstream output;
-        output << std::setw(10) << std::setfill('0') << value;
-
-        const std::string candidate = output.str();
-
-        if (!pnrExists(bookings, candidate)) {
-            return candidate;
-        }
-    }
-
-    return {};
 }
 
 std::string currentDate() {
