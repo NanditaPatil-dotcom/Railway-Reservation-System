@@ -154,12 +154,7 @@ Status BookingModule::createBooking(
     }
 
     // 5. Use the ticket module's PNR generator when available.
-    std::string pnr = tickets_.generatePNR();
-
-    if (validation_.validatePNR(pnr) != Status::OK ||
-        pnrExists(bookings_, pnr)) {
-        pnr = generateFallbackPNR(bookings_);
-    }
+    const std::string pnr = tickets_.generatePNR();
 
     if (pnr.empty() ||
         validation_.validatePNR(pnr) != Status::OK ||
@@ -169,14 +164,10 @@ Status BookingModule::createBooking(
 
     // 6. Calculate the fare. Fall back to the train's stored fare
     // while FareModule is still a stub.
-    double fare = fares_.calculateFare(trainNo);
+    const double fare = fares_.calculateFare(trainNo);
 
     if (!std::isfinite(fare) || fare < 0.0) {
         return Status::INVALID_INPUT;
-    }
-
-    if (fare == 0.0 && train.fare > 0.0) {
-        fare = train.fare;
     }
 
     // 7. Prepare the booking record.

@@ -1,8 +1,16 @@
 #include "FareModule.h"
+#include "Status.h"
 
-// Temporary fallback for B06 integration.
-// B07 should implement the actual fare calculation.
+FareModule::FareModule(const TrainModule& trains)
+    : trains_(trains) {
+}
+
 double FareModule::calculateFare(int trainNo) const {
-    (void)trainNo;
-    return 0.0;
+    Train train;
+
+    if (trains_.findByNumber(trainNo, train) != Status::OK) {
+        return -1.0;
+    }
+
+    return train.fare;
 }

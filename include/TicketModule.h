@@ -8,6 +8,8 @@
 
 class TicketModule {
 public:
+    explicit TicketModule(std::vector<Booking>& bookings);
+
     std::string generatePNR() const;
 
     Status find(const std::string& pnr, Booking& booking) const;
@@ -18,4 +20,7 @@ public:
     );
 
     const std::vector<Booking>& listBookings() const;
+
+private:
+    std::vector<Booking>& bookings_;
 };
