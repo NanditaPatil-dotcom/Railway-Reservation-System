@@ -217,25 +217,109 @@ void handleBooking(
             << createdBooking.fare << '\n'
             << "Status        : " << createdBooking.status << '\n'
             << "========================================\n";
+
     } else if (status == Status::INVALID_INPUT) {
         std::cout
             << "Invalid train number or passenger details.\n";
+
     } else if (status == Status::TRAIN_NOT_FOUND) {
         std::cout
             << "Train not found. Check the train number.\n";
+
     } else if (status == Status::NO_SEATS) {
         std::cout
             << "No seats are available on this train.\n";
+
     } else if (status == Status::PNR_LIMIT_REACHED) {
         std::cout
             << "Booking could not be completed because no new PNRs are available.\n";
+
     } else if (status == Status::FILE_ERROR) {
         std::cout
             << "Booking could not be saved. Please retry.\n";
+
     } else {
         std::cout
             << "Booking failed. Status code: "
             << static_cast<int>(status) << '\n';
+    }
+}
+
+// B08: Display the details of an existing booking.
+void displayBookingDetails(
+    const Booking& booking,
+    const TrainModule& trainModule
+) {
+    std::cout
+        << "\n========================================\n"
+        << "           BOOKING DETAILS\n"
+        << "========================================\n"
+        << "PNR           : " << booking.pnr << '\n'
+        << "Passenger     : " << booking.passenger.name << '\n'
+        << "Age           : " << booking.passenger.age << '\n'
+        << "Gender        : " << booking.passenger.gender << '\n'
+        << "Contact       : " << booking.passenger.contact << '\n'
+        << "Train Number  : " << booking.trainNo << '\n';
+
+    Train train;
+
+    if (trainModule.findByNumber(booking.trainNo, train) == Status::OK) {
+        std::cout
+            << "Train Name    : " << train.name << '\n'
+            << "Source        : " << train.source << '\n'
+            << "Destination   : " << train.destination << '\n'
+            << "Departure     : " << train.departure << '\n'
+            << "Arrival       : " << train.arrival << '\n';
+    }
+
+    std::cout
+        << "Seat Number   : " << booking.seatNo << '\n'
+        << "Booking Date  : " << booking.bookingDate << '\n'
+        << "Fare          : Rs. "
+        << std::fixed << std::setprecision(2)
+        << booking.fare << '\n'
+        << "Status        : " << booking.status << '\n';
+
+    if (booking.status == "CANCELLED") {
+        std::cout
+            << "Refund        : Rs. "
+            << std::fixed << std::setprecision(2)
+            << booking.refund << '\n';
+    }
+
+    std::cout << "========================================\n";
+}
+
+// B08: Retrieve a booking using its PNR.
+void handleViewBooking(
+    const TicketModule& tickets,
+    const TrainModule& trainModule
+) {
+    std::string pnr;
+
+    std::cout << "Enter PNR (10 digits): ";
+
+    if (!std::getline(std::cin, pnr)) {
+        return;
+    }
+
+    Booking booking;
+    const Status status = tickets.find(pnr, booking);
+
+    if (status == Status::OK) {
+        displayBookingDetails(booking, trainModule);
+
+    } else if (status == Status::INVALID_PNR) {
+        std::cout
+            << "Invalid PNR. Please enter a valid 10-digit PNR.\n";
+
+    } else if (status == Status::PNR_NOT_FOUND) {
+        std::cout
+            << "No booking found for the entered PNR.\n";
+
+    } else {
+        std::cout
+            << "Unable to retrieve booking details.\n";
     }
 }
 
@@ -284,6 +368,7 @@ void UserInterface::run() {
                   << "3. Search by train number\n"
                   << "4. View train details and seat availability\n"
                   << "5. Book a ticket\n"
+                  << "6. View booking by PNR\n"
                   << "0. Exit\n";
 
         int choice = -1;
@@ -292,6 +377,7 @@ void UserInterface::run() {
             if (!std::cin) {
                 return;
             }
+
             continue;
         }
 
@@ -373,9 +459,16 @@ void UserInterface::run() {
                 return;
             }
 
+        } else if (choice == 6) {
+            handleViewBooking(tickets, trainModule);
+
+            if (!std::cin) {
+                return;
+            }
+
         } else {
             std::cout
-                << "Choose 0, 1, 2, 3, 4, or 5.\n";
+                << "Choose 0, 1, 2, 3, 4, 5, or 6.\n";
         }
     }
 }

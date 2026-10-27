@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -124,6 +125,41 @@ int main() {
         check(bookings.size() == 1,
               "first booking is recorded");
 
+        // B08: Retrieve an existing booking using its PNR.
+        Booking retrieved;
+
+        result = tickets.find(first.pnr, retrieved);
+
+        check(result == Status::OK,
+              "existing booking can be retrieved by PNR");
+
+        check(retrieved.pnr == first.pnr,
+              "retrieved booking has the correct PNR");
+
+        check(retrieved.passenger.name == first.passenger.name,
+              "retrieved booking has the correct passenger");
+
+        check(retrieved.fare == first.fare,
+              "retrieved booking has the correct fare");
+
+        check(retrieved.seatNo == first.seatNo,
+              "retrieved booking has the correct seat");
+
+        check(retrieved.status == first.status,
+              "retrieved booking has the correct status");
+
+        // B08: Invalid and unknown PNRs must be rejected.
+        check(
+            tickets.find("123", retrieved) == Status::INVALID_PNR,
+            "invalid PNR format is rejected"
+        );
+
+        check(
+            tickets.find("9999999999", retrieved)
+                == Status::PNR_NOT_FOUND,
+            "unknown valid-format PNR returns booking not found"
+        );
+
         // Invalid passenger details must not create a booking.
         Passenger invalid = validPassenger();
         invalid.name = "";
@@ -220,7 +256,21 @@ int main() {
         check(restartReport.bookingsLoaded == 2,
               "both bookings can be loaded from persistent storage");
 
+        // B08: Retrieve a booking after reloading saved records.
         TicketModule restartedTickets(reloadedBookings);
+
+        Booking reloadedBooking;
+
+        check(
+            restartedTickets.find(first.pnr, reloadedBooking)
+                == Status::OK,
+            "booking can be retrieved after reloading saved records"
+        );
+
+        check(
+            reloadedBooking.pnr == first.pnr,
+            "reloaded booking retains its original PNR"
+        );
 
         check(
             restartedTickets.generatePNR() == "1000000003",
@@ -248,6 +298,8 @@ int main() {
         return 1;
     }
 
-    std::cout << "All BookingModule and B07 tests passed.\n";
+    std::cout
+        << "All BookingModule, B07 and B08 tests passed.\n";
+
     return 0;
 }
