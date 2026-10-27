@@ -1,4 +1,3 @@
-```cpp
 #include "BookingModule.h"
 #include "FileModule.h"
 #include "FareModule.h"
@@ -8,6 +7,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -54,13 +54,11 @@ int main() {
     try {
         fs::create_directories(tempDirectory);
         fs::current_path(tempDirectory);
-
         {
             std::ofstream trainFile("trains.txt");
             trainFile
                 << "123|Test Express|Bengaluru|Chennai|10:00|16:00|500|2\n";
         }
-
         {
             std::ofstream bookingFile("bookings.txt");
         }
@@ -98,7 +96,6 @@ int main() {
 
         // Test the first booking.
         Booking first;
-
         Status result = module.createBooking(
             123,
             validPassenger(),
@@ -128,7 +125,6 @@ int main() {
 
         // B08: Retrieve an existing booking using its PNR.
         Booking retrieved;
-
         result = tickets.find(first.pnr, retrieved);
 
         check(result == Status::OK,
@@ -166,7 +162,6 @@ int main() {
         invalid.name = "";
 
         Booking rejected;
-
         result = module.createBooking(
             123,
             invalid,
@@ -191,7 +186,6 @@ int main() {
 
         // Test a second booking.
         Booking second;
-
         result = module.createBooking(
             123,
             validPassenger(),
@@ -293,7 +287,6 @@ int main() {
 
         // A new booking should be able to reuse the released seat.
         Booking replacement;
-
         result = module.createBooking(
             123,
             validPassenger(),
@@ -337,7 +330,6 @@ int main() {
         std::vector<Booking> reloadedBookings;
 
         FileModule restartedFiles;
-
         const LoadReport restartReport =
             restartedFiles.loadAll(
                 reloadedTrains,
@@ -388,13 +380,10 @@ int main() {
 
     } catch (const std::exception& error) {
         fs::current_path(originalDirectory);
-
         std::error_code cleanupError;
         fs::remove_all(tempDirectory, cleanupError);
-
         std::cerr << "Test setup/runtime error: "
                   << error.what() << '\n';
-
         return 1;
     }
 
@@ -405,7 +394,5 @@ int main() {
 
     std::cout
         << "All BookingModule, B07, B08 and B09 tests passed.\n";
-
     return 0;
 }
-```
