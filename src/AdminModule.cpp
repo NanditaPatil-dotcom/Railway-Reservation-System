@@ -1,5 +1,6 @@
 #include "AdminModule.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <utility>
@@ -167,13 +168,40 @@ Status AdminModule::modifyTrain(int trainNo, const Train& updatedTrain) {
     return Status::OK;
 }
 
-Status AdminModule::deleteTrain(int) {
+Status AdminModule::deleteTrain(int trainNo) {
     const Status access = requireLogin();
     if (access != Status::OK) {
         return access;
     }
 
-    return Status::NOT_IMPLEMENTED;  // B13
+    if (trains_ == nullptr || bookings_ == nullptr || files_ == nullptr) {
+        return Status::NOT_IMPLEMENTED;
+    }
+    if (trainNo <= 0) {
+        return Status::INVALID_INPUT;
+    }
+
+    Train existing;
+    if (trains_->findByNumber(trainNo, existing) != Status::OK) {
+        return Status::TRAIN_NOT_FOUND;
+    }
+    if (confirmedBookingsFor(*bookings_, trainNo) > 0) {
+        return Status::TRAIN_HAS_ACTIVE_BOOKINGS;
+    }
+
+    std::vector<Train> remainingTrains = trains_->list();
+    remainingTrains.erase(
+        std::remove_if(
+            remainingTrains.begin(), remainingTrains.end(),
+            [trainNo](const Train& train) { return train.trainNo == trainNo; }
+        ),
+        remainingTrains.end()
+    );
+    if (files_->saveTrains(remainingTrains) != Status::OK) {
+        return Status::FILE_ERROR;
+    }
+    trains_->setTrains(std::move(remainingTrains));
+    return Status::OK;
 }
 
 Status AdminModule::viewTrains(std::vector<Train>& trains) const {
