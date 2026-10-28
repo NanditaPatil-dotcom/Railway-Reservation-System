@@ -82,7 +82,7 @@ Choose **8. Administrator login** from the main menu and enter the administrator
 
 Three failed attempts return you to the main menu. Administrative operations are refused unless an administrator is logged in, even when called directly from code. Leaving the administrator menu logs the administrator out.
 
-After login, choose **1. Add train** to enter a new train record or **2. Modify train** to update an existing record. Train numbers are unique and remain fixed when editing; train capacity cannot be reduced below the number of confirmed bookings. Train changes are saved to `trains.txt`, while existing booking fares remain stored in `bookings.txt`.
+After login, choose **1. Add train** to enter a new train record or **2. Modify train** to update an existing record. Train numbers are unique and remain fixed when editing; train capacity cannot be reduced below the number of confirmed bookings. Choose **3. View all trains** or **4. View all bookings** to inspect the current records. Choose **5. Delete train** and confirm the prompt to remove an eligible train. A train with any confirmed bookings cannot be deleted; canceled bookings do not prevent deletion. Train changes are saved to `trains.txt`, while booking records and their original fares remain stored in `bookings.txt`.
 
 Run the administrator tests with:
 
