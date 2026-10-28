@@ -87,7 +87,7 @@ After login, choose **1. Add train** to enter a new train record or **2. Modify 
 Run the administrator tests with:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin.cpp src/AdminModule.cpp -o test_admin && ./test_admin
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin.cpp src/AdminModule.cpp src/TrainModule.cpp src/FileModule.cpp -o test_admin && ./test_admin
 ```
 
 Run the B12 add/modify acceptance tests with:

@@ -74,7 +74,13 @@ int main() {
     Booking first;
     first.pnr = "1234567890";
     first.trainNo = 45001;
+    first.passenger.name = "Test Passenger";
+    first.passenger.age = 30;
+    first.passenger.gender = 'M';
+    first.passenger.contact = "9876543210";
+    first.seatNo = 1;
     first.fare = 500.0;
+    first.bookingDate = "2026-10-28";
     first.status = "CONFIRMED";
     Booking second = first;
     second.pnr = "1234567891";

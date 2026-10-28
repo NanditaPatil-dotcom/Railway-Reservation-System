@@ -1,7 +1,7 @@
 // Module-level tests for AdminModule (B11): login, denial, session
 // handling, and protection of the administrative operations.
 // Build and run from the repository root (one command):
-//   g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin.cpp src/AdminModule.cpp -o test_admin && ./test_admin
+//   g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin.cpp src/AdminModule.cpp src/TrainModule.cpp src/FileModule.cpp -o test_admin && ./test_admin
 
 #include "AdminModule.h"
 
