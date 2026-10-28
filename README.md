@@ -71,3 +71,19 @@ Run the setup application:
 ```bash
 ./railway
 ```
+
+## Administrator Access
+
+Choose **8. Administrator login** from the main menu and enter the administrator credentials:
+
+| Username | Password |
+|---|---|
+| `admin` | `Admin@123` |
+
+Three failed attempts return you to the main menu. Administrative operations are refused unless an administrator is logged in, even when called directly from code. Leaving the administrator menu logs the administrator out.
+
+Run the administrator tests with:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin.cpp src/AdminModule.cpp -o test_admin && ./test_admin
+```
