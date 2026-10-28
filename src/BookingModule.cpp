@@ -53,6 +53,19 @@ std::set<int> occupiedSeats(
     return occupied;
 }
 
+void setBookingRefund(
+    std::vector<Booking>& bookings,
+    const std::string& pnr,
+    double refund
+) {
+    for (Booking& booking : bookings) {
+        if (booking.pnr == pnr) {
+            booking.refund = refund;
+            return;
+        }
+    }
+}
+
 }  // namespace
 
 BookingModule::BookingModule(
@@ -206,7 +219,10 @@ Status BookingModule::cancelBooking(const std::string& pnr) {
 
     const Train originalTrain = train;
 
-    // 4. Mark the booking as cancelled.
+    // 4. Calculate the refund from the fare stored in the booking.
+    const double refund = booking.fare * 0.90;
+
+    // 5. Mark the booking as cancelled.
     const Status updateStatus =
         tickets_.setStatus(pnr, "CANCELLED");
 
@@ -214,7 +230,10 @@ Status BookingModule::cancelBooking(const std::string& pnr) {
         return updateStatus;
     }
 
-    // 5. Recalculate occupied seats using confirmed bookings only.
+    // Store the refund so it is persisted with the cancelled booking.
+    setBookingRefund(bookings_, pnr, refund);
+
+    // 6. Recalculate occupied seats using confirmed bookings only.
     const std::set<int> occupied =
         occupiedSeats(bookings_, train.trainNo, train.totalSeats);
 
@@ -227,15 +246,17 @@ Status BookingModule::cancelBooking(const std::string& pnr) {
 
     if (trainUpdateStatus != Status::OK) {
         tickets_.setStatus(pnr, "CONFIRMED");
+        setBookingRefund(bookings_, pnr, booking.refund);
         return trainUpdateStatus;
     }
 
-    // 7. Save the cancellation to persistent storage.
+    // 8. Save the cancellation and refund to persistent storage.
     const Status saveStatus = files_.saveBookings(bookings_);
 
     if (saveStatus != Status::OK) {
         // Roll back the in-memory changes if saving fails.
         tickets_.setStatus(pnr, "CONFIRMED");
+        setBookingRefund(bookings_, pnr, booking.refund);
         trains_.modify(booking.trainNo, originalTrain);
         return Status::FILE_ERROR;
     }
