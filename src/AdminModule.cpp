@@ -54,3 +54,58 @@ void AdminModule::logout() {
 bool AdminModule::isAuthenticated() const {
     return authenticated_;
 }
+
+Status AdminModule::requireLogin() const {
+    return authenticated_ ? Status::OK : Status::NOT_AUTHENTICATED;
+}
+
+// Administrative operations. Each one is denied unless an administrator is
+// logged in, even when called directly instead of through the menu. The
+// work itself belongs to B12 (add/modify trains) and B13 (delete trains,
+// view trains and bookings); until then a logged-in call reports
+// NOT_IMPLEMENTED. Keep the requireLogin() check when replacing the bodies.
+
+Status AdminModule::addTrain(const Train&) {
+    const Status access = requireLogin();
+    if (access != Status::OK) {
+        return access;
+    }
+
+    return Status::NOT_IMPLEMENTED;  // B12
+}
+
+Status AdminModule::modifyTrain(int, const Train&) {
+    const Status access = requireLogin();
+    if (access != Status::OK) {
+        return access;
+    }
+
+    return Status::NOT_IMPLEMENTED;  // B12
+}
+
+Status AdminModule::deleteTrain(int) {
+    const Status access = requireLogin();
+    if (access != Status::OK) {
+        return access;
+    }
+
+    return Status::NOT_IMPLEMENTED;  // B13
+}
+
+Status AdminModule::viewTrains(std::vector<Train>&) const {
+    const Status access = requireLogin();
+    if (access != Status::OK) {
+        return access;
+    }
+
+    return Status::NOT_IMPLEMENTED;  // B13
+}
+
+Status AdminModule::viewBookings(std::vector<Booking>&) const {
+    const Status access = requireLogin();
+    if (access != Status::OK) {
+        return access;
+    }
+
+    return Status::NOT_IMPLEMENTED;  // B13
+}

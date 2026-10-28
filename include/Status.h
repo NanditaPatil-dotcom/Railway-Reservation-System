@@ -14,5 +14,6 @@ enum class Status {
     INVALID_CAPACITY,
     PNR_LIMIT_REACHED,
     FILE_ERROR,
-    INVALID_SEAT
+    INVALID_SEAT,
+    NOT_IMPLEMENTED
 };

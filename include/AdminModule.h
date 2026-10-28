@@ -38,5 +38,9 @@ public:
     Status viewBookings(std::vector<Booking>& bookings) const;
 
 private:
+    // OK when an administrator is logged in, otherwise NOT_AUTHENTICATED.
+    // Every administrative operation must call this before doing any work.
+    Status requireLogin() const;
+
     bool authenticated_ = false;
 };
