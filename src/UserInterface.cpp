@@ -1,5 +1,6 @@
 #include "UserInterface.h"
 
+#include "AdminModule.h"
 #include "BookingModule.h"
 #include "FareModule.h"
 #include "FileModule.h"
@@ -380,6 +381,67 @@ void handleCancelBooking(
             << "Cancellation failed. Please try again.\n";
     }
 }
+void runAdminMenu(AdminModule& admin) {
+    while (admin.isAuthenticated()) {
+        std::cout << "\nAdministrator Menu\n"
+                  << "0. Logout\n";
+
+        int choice = -1;
+
+        if (!readInteger("Choose an option: ", choice)) {
+            if (!std::cin) {
+                break;
+            }
+
+            continue;
+        }
+
+        if (choice == 0) {
+            break;
+        }
+
+        std::cout << "Choose 0.\n";
+    }
+
+    // Always end the session when leaving the administrator menu.
+    admin.logout();
+    std::cout << "Logged out.\n";
+}
+
+void handleAdminLogin(AdminModule& admin) {
+    for (int attempt = 1;
+         attempt <= AdminModule::kMaxLoginAttempts;
+         ++attempt) {
+        std::string username;
+        std::string password;
+
+        std::cout << "Administrator username: ";
+        if (!std::getline(std::cin, username)) {
+            return;
+        }
+
+        std::cout << "Password: ";
+        if (!std::getline(std::cin, password)) {
+            return;
+        }
+
+        if (admin.login(username, password) == Status::OK) {
+            std::cout << "Login successful.\n";
+            runAdminMenu(admin);
+            return;
+        }
+
+        const int remaining = AdminModule::kMaxLoginAttempts - attempt;
+        if (remaining > 0) {
+            std::cout << "Invalid credentials. " << remaining
+                      << " attempt(s) remaining.\n";
+        }
+    }
+
+    std::cout << "Too many failed login attempts. "
+              << "Returning to the main menu.\n";
+}
+
 }  // namespace
 
 void UserInterface::run() {
@@ -393,6 +455,7 @@ void UserInterface::run() {
     TrainModule trainModule(std::move(trains));
     SearchModule search(trainModule);
 
+    AdminModule admin;
     ValidationModule validation;
     FareModule fares(trainModule);
     TicketModule tickets(bookings);
@@ -427,7 +490,8 @@ void UserInterface::run() {
                   << "5. Book a ticket\n"
                   << "6. View booking by PNR\n"
 		  << "7. Cancel booking\n"
-		  << "0. Exit\n";
+		  << "8. Administrator login\n"
+                  << "0. Exit\n";
 
         int choice = -1;
 
@@ -530,9 +594,16 @@ void UserInterface::run() {
                 return;
             }
 
+        } else if (choice == 8) {
+            handleAdminLogin(admin);
+
+            if (!std::cin) {
+                return;
+            }
+
         } else {
             std::cout
-                << "Choose 0, 1, 2, 3, 4, 5, 6, or 7.\n";
+                << "Choose 0, 1, 2, 3, 4, 5, 6, 7, or 8.\n";
         }
     }
 }
