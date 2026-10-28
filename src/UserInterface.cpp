@@ -10,6 +10,7 @@
 #include "ValidationModule.h"
 
 #include <cctype>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -105,6 +106,89 @@ bool readInteger(const std::string& prompt, int& value) {
     }
 
     return true;
+}
+
+bool readAmount(const std::string& prompt, double& value) {
+    std::cout << prompt;
+    std::string input;
+    if (!std::getline(std::cin, input)) {
+        return false;
+    }
+    std::istringstream parser(input);
+    char extra = '\0';
+    if (!(parser >> value) || (parser >> extra) || !std::isfinite(value)) {
+        std::cout << "Please enter a valid amount.\n";
+        return false;
+    }
+    return true;
+}
+
+bool readTrainFields(Train& train, bool readNumber) {
+    if (readNumber && !readInteger("Train number: ", train.trainNo)) {
+        return false;
+    }
+    std::cout << "Train name: ";
+    if (!std::getline(std::cin, train.name)) return false;
+    std::cout << "Source station: ";
+    if (!std::getline(std::cin, train.source)) return false;
+    std::cout << "Destination station: ";
+    if (!std::getline(std::cin, train.destination)) return false;
+    std::cout << "Departure time: ";
+    if (!std::getline(std::cin, train.departure)) return false;
+    std::cout << "Arrival time: ";
+    if (!std::getline(std::cin, train.arrival)) return false;
+    if (!readAmount("Fare: Rs. ", train.fare) ||
+        !readInteger("Total seats: ", train.totalSeats)) {
+        return false;
+    }
+    return true;
+}
+
+void reportTrainChange(Status status, const std::string& action) {
+    if (status == Status::OK) {
+        std::cout << "Train " << action << " successfully.\n";
+    } else if (status == Status::DUPLICATE_TRAIN_NO) {
+        std::cout << "That train number already exists.\n";
+    } else if (status == Status::TRAIN_NOT_FOUND) {
+        std::cout << "Train not found. Check the train number.\n";
+    } else if (status == Status::INVALID_CAPACITY) {
+        std::cout << "Capacity cannot be lower than the confirmed bookings.\n";
+    } else if (status == Status::INVALID_INPUT) {
+        std::cout << "Train details are invalid. Check the values and try again.\n";
+    } else if (status == Status::FILE_ERROR) {
+        std::cout << "Train could not be saved. Please retry.\n";
+    } else {
+        std::cout << "Train " << action << " failed.\n";
+    }
+}
+
+void handleAddTrain(AdminModule& admin) {
+    Train train;
+    if (!readTrainFields(train, true)) {
+        if (std::cin) std::cout << "Train entry cancelled.\n";
+        return;
+    }
+    train.availableSeats = train.totalSeats;
+    reportTrainChange(admin.addTrain(train), "added");
+}
+
+void handleModifyTrain(AdminModule& admin, const TrainModule& trains) {
+    int trainNo = 0;
+    if (!readInteger("Train number to modify: ", trainNo)) {
+        return;
+    }
+    Train updated;
+    if (trains.findByNumber(trainNo, updated) != Status::OK) {
+        reportTrainChange(Status::TRAIN_NOT_FOUND, "modified");
+        return;
+    }
+    std::cout << "Enter the updated train details. Train number remains "
+              << trainNo << ".\n";
+    if (!readTrainFields(updated, false)) {
+        if (std::cin) std::cout << "Train update cancelled.\n";
+        return;
+    }
+    reportTrainChange(admin.modifyTrain(trainNo, updated), "modified");
 }
 
 bool readPassenger(Passenger& passenger) {
@@ -381,9 +465,11 @@ void handleCancelBooking(
             << "Cancellation failed. Please try again.\n";
     }
 }
-void runAdminMenu(AdminModule& admin) {
+void runAdminMenu(AdminModule& admin, const TrainModule& trains) {
     while (admin.isAuthenticated()) {
         std::cout << "\nAdministrator Menu\n"
+                  << "1. Add train\n"
+                  << "2. Modify train\n"
                   << "0. Logout\n";
 
         int choice = -1;
@@ -398,9 +484,13 @@ void runAdminMenu(AdminModule& admin) {
 
         if (choice == 0) {
             break;
+        } else if (choice == 1) {
+            handleAddTrain(admin);
+        } else if (choice == 2) {
+            handleModifyTrain(admin, trains);
+        } else {
+            std::cout << "Choose 0, 1, or 2.\n";
         }
-
-        std::cout << "Choose 0.\n";
     }
 
     // Always end the session when leaving the administrator menu.
@@ -408,7 +498,7 @@ void runAdminMenu(AdminModule& admin) {
     std::cout << "Logged out.\n";
 }
 
-void handleAdminLogin(AdminModule& admin) {
+void handleAdminLogin(AdminModule& admin, const TrainModule& trains) {
     for (int attempt = 1;
          attempt <= AdminModule::kMaxLoginAttempts;
          ++attempt) {
@@ -427,7 +517,7 @@ void handleAdminLogin(AdminModule& admin) {
 
         if (admin.login(username, password) == Status::OK) {
             std::cout << "Login successful.\n";
-            runAdminMenu(admin);
+            runAdminMenu(admin, trains);
             return;
         }
 
@@ -455,7 +545,7 @@ void UserInterface::run() {
     TrainModule trainModule(std::move(trains));
     SearchModule search(trainModule);
 
-    AdminModule admin;
+    AdminModule admin(trainModule, bookings, files);
     ValidationModule validation;
     FareModule fares(trainModule);
     TicketModule tickets(bookings);
@@ -595,7 +685,7 @@ void UserInterface::run() {
             }
 
         } else if (choice == 8) {
-            handleAdminLogin(admin);
+            handleAdminLogin(admin, trainModule);
 
             if (!std::cin) {
                 return;
