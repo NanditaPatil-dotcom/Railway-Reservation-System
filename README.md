@@ -82,8 +82,16 @@ Choose **8. Administrator login** from the main menu and enter the administrator
 
 Three failed attempts return you to the main menu. Administrative operations are refused unless an administrator is logged in, even when called directly from code. Leaving the administrator menu logs the administrator out.
 
+After login, choose **1. Add train** to enter a new train record or **2. Modify train** to update an existing record. Train numbers are unique and remain fixed when editing; train capacity cannot be reduced below the number of confirmed bookings. Train changes are saved to `trains.txt`, while existing booking fares remain stored in `bookings.txt`.
+
 Run the administrator tests with:
 
 ```bash
 g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin.cpp src/AdminModule.cpp -o test_admin && ./test_admin
+```
+
+Run the B12 add/modify acceptance tests with:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin_trains.cpp src/AdminModule.cpp src/TrainModule.cpp src/FileModule.cpp -o test_admin_trains && ./test_admin_trains
 ```
