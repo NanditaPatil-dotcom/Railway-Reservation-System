@@ -255,6 +255,17 @@ int main() {
             "cancelled booking has cancelled status"
         );
 
+        // B10 / TC-CAN-06: Refund is 90% of the stored booking fare.
+        check(
+            cancelledBooking.refund == first.fare * 0.90,
+            "cancellation refund equals 90% of stored fare"
+        );
+
+        check(
+            cancelledBooking.refund == 450.0,
+            "fare of 500 produces a refund of 450"
+        );
+
         // Verify that the released seat becomes available.
         Train afterCancellation;
 
@@ -361,6 +372,11 @@ int main() {
             "cancellation status persists after reloading"
         );
 
+        check(
+            reloadedBooking.refund == first.fare * 0.90,
+            "cancellation refund persists after reloading"
+        );
+
         // The first booking is cancelled and the replacement is confirmed.
         // The second booking is also confirmed, so both seats are occupied.
         check(
@@ -393,6 +409,6 @@ int main() {
     }
 
     std::cout
-        << "All BookingModule, B07, B08 and B09 tests passed.\n";
+        << "All BookingModule, B07, B08, B09 and B10 tests passed.\n";
     return 0;
 }
