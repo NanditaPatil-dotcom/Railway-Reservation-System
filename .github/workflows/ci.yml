@@ -22,4 +22,7 @@ jobs:
         run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_booking.cpp src/BookingModule.cpp src/FileModule.cpp src/FareModule.cpp src/TicketModule.cpp src/TrainModule.cpp src/ValidationModule.cpp -o test_booking && ./test_booking
 
       - name: Run AdminModule tests
-        run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin.cpp src/AdminModule.cpp -o test_admin && ./test_admin
+        run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin.cpp src/AdminModule.cpp src/TrainModule.cpp src/FileModule.cpp -o test_admin && ./test_admin
+
+      - name: Run admin train management tests
+        run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin_trains.cpp src/AdminModule.cpp src/TrainModule.cpp src/FileModule.cpp -o test_admin_trains && ./test_admin_trains
