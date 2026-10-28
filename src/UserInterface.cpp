@@ -323,7 +323,10 @@ void handleViewBooking(
     }
 }
 // B09: Cancel a booking using its PNR.
-void handleCancelBooking(BookingModule& bookingModule) {
+void handleCancelBooking(
+    BookingModule& bookingModule,
+    const TicketModule& tickets
+) {
     std::string pnr;
 
     std::cout << "Enter PNR to cancel (10 digits): ";
@@ -338,6 +341,18 @@ void handleCancelBooking(BookingModule& bookingModule) {
         std::cout
             << "Booking cancelled successfully.\n"
             << "The seat has been released for future bookings.\n";
+
+        Booking cancelledBooking;
+        if (tickets.find(pnr, cancelledBooking) == Status::OK) {
+            std::cout
+                << std::fixed << std::setprecision(2)
+                << "Original fare: Rs. "
+                << cancelledBooking.fare << '\n'
+                << "Cancellation charge (10%): Rs. "
+                << cancelledBooking.fare * 0.10 << '\n'
+                << "Refund amount (90%): Rs. "
+                << cancelledBooking.refund << '\n';
+        }
 
     } else if (status == Status::INVALID_PNR) {
         std::cout
@@ -509,7 +524,7 @@ void UserInterface::run() {
                 return;
             }
         } else if (choice == 7) {
-            handleCancelBooking(bookingModule);
+            handleCancelBooking(bookingModule, tickets);
 
             if (!std::cin) {
                 return;
