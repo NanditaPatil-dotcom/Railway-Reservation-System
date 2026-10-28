@@ -10,6 +10,7 @@
 #include "FileModule.h"
 
 #include <vector>
+#include <string>
 
 class BookingModule {
 public:
@@ -18,7 +19,7 @@ public:
         std::vector<Booking>& bookings,
         const ValidationModule& validation,
         const FareModule& fares,
-        const TicketModule& tickets,
+        TicketModule& tickets,
         FileModule& files
     );
 
@@ -27,12 +28,13 @@ public:
         const Passenger& passenger,
         Booking& createdBooking
     );
+    Status cancelBooking(const std::string& pnr);
 
 private:
     TrainModule& trains_;
     std::vector<Booking>& bookings_;
     const ValidationModule& validation_;
     const FareModule& fares_;
-    const TicketModule& tickets_;
+    TicketModule& tickets_;
     FileModule& files_;
 };

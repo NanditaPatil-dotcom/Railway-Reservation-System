@@ -60,7 +60,7 @@ BookingModule::BookingModule(
     std::vector<Booking>& bookings,
     const ValidationModule& validation,
     const FareModule& fares,
-    const TicketModule& tickets,
+    TicketModule& tickets,
     FileModule& files
 )
     : trains_(trains),
@@ -175,5 +175,70 @@ Status BookingModule::createBooking(
     }
 
     createdBooking = candidate;
+    return Status::OK;
+}
+Status BookingModule::cancelBooking(const std::string& pnr) {
+    // 1. Find the booking and validate the PNR.
+    Booking booking;
+    const Status lookupStatus = tickets_.find(pnr, booking);
+
+    if (lookupStatus != Status::OK) {
+        return lookupStatus;
+    }
+
+    // 2. Do not allow a booking to be cancelled twice.
+    if (booking.status == "CANCELLED") {
+        return Status::ALREADY_CANCELLED;
+    }
+
+    if (booking.status != "CONFIRMED") {
+        return Status::INVALID_INPUT;
+    }
+
+    // 3. Find the associated train before changing the booking.
+    Train train;
+    const Status trainStatus =
+        trains_.findByNumber(booking.trainNo, train);
+
+    if (trainStatus != Status::OK) {
+        return Status::TRAIN_NOT_FOUND;
+    }
+
+    const Train originalTrain = train;
+
+    // 4. Mark the booking as cancelled.
+    const Status updateStatus =
+        tickets_.setStatus(pnr, "CANCELLED");
+
+    if (updateStatus != Status::OK) {
+        return updateStatus;
+    }
+
+    // 5. Recalculate occupied seats using confirmed bookings only.
+    const std::set<int> occupied =
+        occupiedSeats(bookings_, train.trainNo, train.totalSeats);
+
+    train.availableSeats =
+        train.totalSeats - static_cast<int>(occupied.size());
+
+    // 6. Update the in-memory train availability.
+    const Status trainUpdateStatus =
+        trains_.modify(booking.trainNo, train);
+
+    if (trainUpdateStatus != Status::OK) {
+        tickets_.setStatus(pnr, "CONFIRMED");
+        return trainUpdateStatus;
+    }
+
+    // 7. Save the cancellation to persistent storage.
+    const Status saveStatus = files_.saveBookings(bookings_);
+
+    if (saveStatus != Status::OK) {
+        // Roll back the in-memory changes if saving fails.
+        tickets_.setStatus(pnr, "CONFIRMED");
+        trains_.modify(booking.trainNo, originalTrain);
+        return Status::FILE_ERROR;
+    }
+
     return Status::OK;
 }

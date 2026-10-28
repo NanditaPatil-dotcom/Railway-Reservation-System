@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -48,18 +49,16 @@ int main() {
 
     const fs::path tempDirectory =
         fs::temp_directory_path() /
-        ("railway_b07_test_" + std::to_string(stamp));
+        ("railway_b09_test_" + std::to_string(stamp));
 
     try {
         fs::create_directories(tempDirectory);
         fs::current_path(tempDirectory);
-
         {
             std::ofstream trainFile("trains.txt");
             trainFile
                 << "123|Test Express|Bengaluru|Chennai|10:00|16:00|500|2\n";
         }
-
         {
             std::ofstream bookingFile("bookings.txt");
         }
@@ -97,7 +96,6 @@ int main() {
 
         // Test the first booking.
         Booking first;
-
         Status result = module.createBooking(
             123,
             validPassenger(),
@@ -127,7 +125,6 @@ int main() {
 
         // B08: Retrieve an existing booking using its PNR.
         Booking retrieved;
-
         result = tickets.find(first.pnr, retrieved);
 
         check(result == Status::OK,
@@ -165,7 +162,6 @@ int main() {
         invalid.name = "";
 
         Booking rejected;
-
         result = module.createBooking(
             123,
             invalid,
@@ -190,7 +186,6 @@ int main() {
 
         // Test a second booking.
         Booking second;
-
         result = module.createBooking(
             123,
             validPassenger(),
@@ -241,20 +236,108 @@ int main() {
         check(updatedTrain.availableSeats == 0,
               "seat availability reaches zero after two bookings");
 
-        // B07: Reload persisted bookings to verify PNR continuity.
+        // B09: Cancel a confirmed booking.
+        result = module.cancelBooking(first.pnr);
+
+        check(result == Status::OK,
+              "confirmed booking can be cancelled");
+
+        // Verify that the booking status changes.
+        Booking cancelledBooking;
+
+        check(
+            tickets.find(first.pnr, cancelledBooking) == Status::OK,
+            "cancelled booking can still be retrieved"
+        );
+
+        check(
+            cancelledBooking.status == "CANCELLED",
+            "cancelled booking has cancelled status"
+        );
+
+        // Verify that the released seat becomes available.
+        Train afterCancellation;
+
+        check(
+            trains.findByNumber(123, afterCancellation) == Status::OK,
+            "train can be found after cancellation"
+        );
+
+        check(
+            afterCancellation.availableSeats == 1,
+            "cancellation releases one seat"
+        );
+
+        // Cancelling the same booking twice must be rejected.
+        check(
+            module.cancelBooking(first.pnr) == Status::ALREADY_CANCELLED,
+            "repeated cancellation is rejected"
+        );
+
+        // Invalid and nonexistent PNRs must be rejected.
+        check(
+            module.cancelBooking("123") == Status::INVALID_PNR,
+            "cancellation rejects an invalid PNR format"
+        );
+
+        check(
+            module.cancelBooking("9999999999") == Status::PNR_NOT_FOUND,
+            "cancellation rejects an unknown PNR"
+        );
+
+        // A new booking should be able to reuse the released seat.
+        Booking replacement;
+        result = module.createBooking(
+            123,
+            validPassenger(),
+            replacement
+        );
+
+        check(
+            result == Status::OK,
+            "new booking succeeds after cancellation"
+        );
+
+        check(
+            replacement.seatNo == 1,
+            "new booking reuses the released seat"
+        );
+
+        check(
+            replacement.pnr == "1000000003",
+            "replacement booking receives the next PNR"
+        );
+
+        check(
+            bookings.size() == 3,
+            "cancelled and confirmed bookings remain recorded"
+        );
+
+        Train afterReplacement;
+
+        check(
+            trains.findByNumber(123, afterReplacement) == Status::OK,
+            "train can be found after replacement booking"
+        );
+
+        check(
+            afterReplacement.availableSeats == 0,
+            "availability becomes zero after the released seat is rebooked"
+        );
+
+        // Reload persisted bookings to verify cancellation and PNR continuity.
         std::vector<Train> reloadedTrains;
         std::vector<Booking> reloadedBookings;
 
         FileModule restartedFiles;
-
         const LoadReport restartReport =
             restartedFiles.loadAll(
                 reloadedTrains,
                 reloadedBookings
             );
 
-        check(restartReport.bookingsLoaded == 2,
-              "both bookings can be loaded from persistent storage");
+        check(restartReport.bookingsLoaded == 3,
+              "all bookings can be loaded from persistent storage");
 
         // B08: Retrieve a booking after reloading saved records.
         TicketModule restartedTickets(reloadedBookings);
@@ -272,8 +355,22 @@ int main() {
             "reloaded booking retains its original PNR"
         );
 
+        // B09: Cancellation status must persist after reload.
         check(
-            restartedTickets.generatePNR() == "1000000003",
+            reloadedBooking.status == "CANCELLED",
+            "cancellation status persists after reloading"
+        );
+
+        // The first booking is cancelled and the replacement is confirmed.
+        // The second booking is also confirmed, so both seats are occupied.
+        check(
+            !reloadedTrains.empty() &&
+                reloadedTrains[0].availableSeats == 0,
+            "reloaded seat availability reflects confirmed bookings"
+        );
+
+        check(
+            restartedTickets.generatePNR() == "1000000004",
             "PNR numbering continues after reloading saved bookings"
         );
 
@@ -283,13 +380,10 @@ int main() {
 
     } catch (const std::exception& error) {
         fs::current_path(originalDirectory);
-
         std::error_code cleanupError;
         fs::remove_all(tempDirectory, cleanupError);
-
         std::cerr << "Test setup/runtime error: "
                   << error.what() << '\n';
-
         return 1;
     }
 
@@ -299,7 +393,6 @@ int main() {
     }
 
     std::cout
-        << "All BookingModule, B07 and B08 tests passed.\n";
-
+        << "All BookingModule, B07, B08 and B09 tests passed.\n";
     return 0;
 }

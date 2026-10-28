@@ -322,7 +322,49 @@ void handleViewBooking(
             << "Unable to retrieve booking details.\n";
     }
 }
+// B09: Cancel a booking using its PNR.
+void handleCancelBooking(BookingModule& bookingModule) {
+    std::string pnr;
 
+    std::cout << "Enter PNR to cancel (10 digits): ";
+
+    if (!std::getline(std::cin, pnr)) {
+        return;
+    }
+
+    const Status status = bookingModule.cancelBooking(pnr);
+
+    if (status == Status::OK) {
+        std::cout
+            << "Booking cancelled successfully.\n"
+            << "The seat has been released for future bookings.\n";
+
+    } else if (status == Status::INVALID_PNR) {
+        std::cout
+            << "Invalid PNR. Please enter a valid 10-digit PNR.\n";
+
+    } else if (status == Status::PNR_NOT_FOUND) {
+        std::cout
+            << "No booking found for the entered PNR.\n";
+
+    } else if (status == Status::ALREADY_CANCELLED) {
+        std::cout
+            << "This booking has already been cancelled.\n";
+
+    } else if (status == Status::TRAIN_NOT_FOUND) {
+        std::cout
+            << "The associated train could not be found. "
+            << "The booking was not cancelled.\n";
+
+    } else if (status == Status::FILE_ERROR) {
+        std::cout
+            << "Cancellation could not be saved. Please try again.\n";
+
+    } else {
+        std::cout
+            << "Cancellation failed. Please try again.\n";
+    }
+}
 }  // namespace
 
 void UserInterface::run() {
@@ -369,7 +411,8 @@ void UserInterface::run() {
                   << "4. View train details and seat availability\n"
                   << "5. Book a ticket\n"
                   << "6. View booking by PNR\n"
-                  << "0. Exit\n";
+		  << "7. Cancel booking\n"
+		  << "0. Exit\n";
 
         int choice = -1;
 
@@ -465,10 +508,16 @@ void UserInterface::run() {
             if (!std::cin) {
                 return;
             }
+        } else if (choice == 7) {
+            handleCancelBooking(bookingModule);
+
+            if (!std::cin) {
+                return;
+            }
 
         } else {
             std::cout
-                << "Choose 0, 1, 2, 3, 4, 5, or 6.\n";
+                << "Choose 0, 1, 2, 3, 4, 5, 6, or 7.\n";
         }
     }
 }
