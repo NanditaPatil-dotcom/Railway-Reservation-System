@@ -176,20 +176,28 @@ Status AdminModule::deleteTrain(int) {
     return Status::NOT_IMPLEMENTED;  // B13
 }
 
-Status AdminModule::viewTrains(std::vector<Train>&) const {
+Status AdminModule::viewTrains(std::vector<Train>& trains) const {
     const Status access = requireLogin();
     if (access != Status::OK) {
         return access;
     }
 
-    return Status::NOT_IMPLEMENTED;  // B13
+    if (trains_ == nullptr) {
+        return Status::NOT_IMPLEMENTED;
+    }
+    trains = trains_->list();
+    return Status::OK;
 }
 
-Status AdminModule::viewBookings(std::vector<Booking>&) const {
+Status AdminModule::viewBookings(std::vector<Booking>& bookings) const {
     const Status access = requireLogin();
     if (access != Status::OK) {
         return access;
     }
 
-    return Status::NOT_IMPLEMENTED;  // B13
+    if (bookings_ == nullptr) {
+        return Status::NOT_IMPLEMENTED;
+    }
+    bookings = *bookings_;
+    return Status::OK;
 }
