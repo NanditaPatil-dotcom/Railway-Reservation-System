@@ -191,6 +191,71 @@ void handleModifyTrain(AdminModule& admin, const TrainModule& trains) {
     reportTrainChange(admin.modifyTrain(trainNo, updated), "modified");
 }
 
+void handleAdminViewTrains(AdminModule& admin) {
+    std::vector<Train> trains;
+    const Status status = admin.viewTrains(trains);
+    if (status == Status::OK) {
+        displayTrains(trains);
+    } else {
+        std::cout << "Unable to retrieve train records.\n";
+    }
+}
+
+void handleAdminViewBookings(AdminModule& admin) {
+    std::vector<Booking> bookings;
+    if (admin.viewBookings(bookings) != Status::OK) {
+        std::cout << "Unable to retrieve booking records.\n";
+        return;
+    }
+    if (bookings.empty()) {
+        std::cout << "No booking records found.\n";
+        return;
+    }
+
+    std::cout << std::left << std::setw(13) << "PNR"
+              << std::setw(11) << "Train No."
+              << std::setw(24) << "Passenger"
+              << std::setw(8) << "Seat"
+              << std::setw(12) << "Fare"
+              << std::setw(14) << "Booking Date"
+              << std::setw(13) << "Status" << "Refund\n";
+    std::cout << std::string(100, '-') << '\n';
+    for (const Booking& booking : bookings) {
+        std::cout << std::left << std::setw(13) << booking.pnr
+                  << std::setw(11) << booking.trainNo
+                  << std::setw(24) << booking.passenger.name
+                  << std::setw(8) << booking.seatNo
+                  << std::setw(12) << std::fixed << std::setprecision(2)
+                  << booking.fare
+                  << std::setw(14) << booking.bookingDate
+                  << std::setw(13) << booking.status
+                  << booking.refund << '\n';
+    }
+}
+
+void handleDeleteTrain(AdminModule& admin) {
+    int trainNo = 0;
+    if (!readInteger("Train number to delete: ", trainNo)) {
+        return;
+    }
+    std::cout << "Delete train " << trainNo << "? (y/N): ";
+    std::string confirmation;
+    if (!std::getline(std::cin, confirmation)) {
+        return;
+    }
+    if (confirmation != "y" && confirmation != "Y") {
+        std::cout << "Train deletion cancelled.\n";
+        return;
+    }
+
+    const Status status = admin.deleteTrain(trainNo);
+    if (status == Status::TRAIN_HAS_ACTIVE_BOOKINGS) {
+        std::cout << "Train has confirmed bookings and cannot be deleted.\n";
+    } else {
+        reportTrainChange(status, "deleted");
+    }
+}
+
 bool readPassenger(Passenger& passenger) {
     std::cout << "Passenger name: ";
     if (!std::getline(std::cin, passenger.name)) {
@@ -470,6 +535,9 @@ void runAdminMenu(AdminModule& admin, const TrainModule& trains) {
         std::cout << "\nAdministrator Menu\n"
                   << "1. Add train\n"
                   << "2. Modify train\n"
+                  << "3. View all trains\n"
+                  << "4. View all bookings\n"
+                  << "5. Delete train\n"
                   << "0. Logout\n";
 
         int choice = -1;
@@ -488,8 +556,14 @@ void runAdminMenu(AdminModule& admin, const TrainModule& trains) {
             handleAddTrain(admin);
         } else if (choice == 2) {
             handleModifyTrain(admin, trains);
+        } else if (choice == 3) {
+            handleAdminViewTrains(admin);
+        } else if (choice == 4) {
+            handleAdminViewBookings(admin);
+        } else if (choice == 5) {
+            handleDeleteTrain(admin);
         } else {
-            std::cout << "Choose 0, 1, or 2.\n";
+            std::cout << "Choose 0, 1, 2, 3, 4, or 5.\n";
         }
     }
 
