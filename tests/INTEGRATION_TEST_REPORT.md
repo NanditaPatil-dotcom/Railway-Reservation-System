@@ -91,3 +91,8 @@ The runner compiles and executes the application and the available validation, b
 
 The test output should be reviewed for failures before the integration changes are submitted for review. The GitHub Actions workflow must also pass before the pull request is considered ready to merge.
 
+## 9. Test Execution Environment and Limitations
+
+The test suite was executed locally using a C++17 compiler with warning checks enabled. The unified test runner completed successfully, including validation, booking, administrator, performance, seat-consistency and usability tests.
+
+Performance measurements may vary across machines. The recorded results demonstrate the observed behavior for this test run and do not guarantee the absence of all defects. Final verification depends on successful CI execution and review of the applicable acceptance criteria.
