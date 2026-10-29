@@ -26,3 +26,12 @@ jobs:
 
       - name: Run admin train management tests
         run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin_trains.cpp src/AdminModule.cpp src/TrainModule.cpp src/FileModule.cpp -o test_admin_trains && ./test_admin_trains
+
+      - name: Run NFR performance test (TC-NFR-01)
+        run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_nfr_performance.cpp src/BookingModule.cpp src/FareModule.cpp src/FileModule.cpp src/SearchModule.cpp src/TicketModule.cpp src/TrainModule.cpp src/ValidationModule.cpp -o test_nfr_performance && ./test_nfr_performance
+
+      - name: Run NFR seat consistency test (TC-NFR-02)
+        run: g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_nfr_seats.cpp src/BookingModule.cpp src/FareModule.cpp src/FileModule.cpp src/TicketModule.cpp src/TrainModule.cpp src/ValidationModule.cpp -o test_nfr_seats && ./test_nfr_seats
+
+      - name: Run NFR usability test (TC-NFR-03)
+        run: tests/test_nfr_usability.sh ./railway
