@@ -95,3 +95,13 @@ Run the B12 add/modify acceptance tests with:
 ```bash
 g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_admin_trains.cpp src/AdminModule.cpp src/TrainModule.cpp src/FileModule.cpp -o test_admin_trains && ./test_admin_trains
 ```
+
+## Non-Functional Tests
+
+Run the B14 performance, seat consistency and usability tests (see `tests/NFR_TEST_REPORT.md` for results):
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_nfr_performance.cpp src/BookingModule.cpp src/FareModule.cpp src/FileModule.cpp src/SearchModule.cpp src/TicketModule.cpp src/TrainModule.cpp src/ValidationModule.cpp -o test_nfr_performance && ./test_nfr_performance
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_nfr_seats.cpp src/BookingModule.cpp src/FareModule.cpp src/FileModule.cpp src/TicketModule.cpp src/TrainModule.cpp src/ValidationModule.cpp -o test_nfr_seats && ./test_nfr_seats
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude src/*.cpp -o railway && tests/test_nfr_usability.sh ./railway
+```

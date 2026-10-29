@@ -1,0 +1,153 @@
+// B14 / TC-NFR-01 (RT-NF001): search must complete within 2 seconds
+// with up to 10,000 train records.
+#include "BookingModule.h"
+#include "FareModule.h"
+#include "FileModule.h"
+#include "SearchModule.h"
+#include "TicketModule.h"
+#include "TrainModule.h"
+#include "ValidationModule.h"
+
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace {
+
+int failures = 0;
+constexpr int kTrainCount = 10000;
+constexpr double kLimitMs = 2000.0;
+
+void check(bool condition, const std::string& message) {
+    if (!condition) {
+        ++failures;
+        std::cerr << "FAIL: " << message << '\n';
+    }
+}
+
+using Clock = std::chrono::steady_clock;
+
+double elapsedMs(Clock::time_point start) {
+    return std::chrono::duration<double, std::milli>(Clock::now() - start).count();
+}
+
+void report(const std::string& label, double ms) {
+    std::cout << "  " << std::left << std::setw(46) << label
+              << std::right << std::setw(10) << std::fixed
+              << std::setprecision(3) << ms << " ms\n";
+    check(ms < kLimitMs, label + " must finish within 2000 ms");
+}
+
+}  // namespace
+
+int main() {
+    namespace fs = std::filesystem;
+    const fs::path original = fs::current_path();
+    const fs::path temp = fs::temp_directory_path() /
+        ("railway_nfr_perf_" +
+         std::to_string(Clock::now().time_since_epoch().count()));
+    fs::create_directories(temp);
+    fs::current_path(temp);
+
+    const std::vector<std::string> cities = {
+        "Bengaluru", "Chennai", "Mumbai", "New Delhi", "Hyderabad",
+        "Kolkata", "Pune", "Mysuru", "Hubballi", "Jaipur"};
+
+    {
+        std::ofstream trainFile("trains.txt");
+        for (int i = 0; i < kTrainCount; ++i) {
+            const std::string& src = cities[i % cities.size()];
+            const std::string& dst = cities[(i / 10 + 3) % cities.size()];
+            trainFile << (10000 + i) << "|Train " << i << '|' << src << '|'
+                      << dst << "|10:00|16:00|" << (100 + i % 900) << ".50|"
+                      << (50 + i % 100) << '\n';
+        }
+    }
+    { std::ofstream bookingFile("bookings.txt"); }
+
+    std::cout << "TC-NFR-01 search performance, " << kTrainCount
+              << " train records (limit 2000 ms)\n";
+
+    FileModule files;
+    std::vector<Train> loaded;
+    std::vector<Booking> bookings;
+
+    auto start = Clock::now();
+    const LoadReport loadReport = files.loadAll(loaded, bookings);
+    report("load 10,000 trains from trains.txt", elapsedMs(start));
+    check(loadReport.trainsLoaded == kTrainCount, "all 10,000 trains load");
+    check(loadReport.linesSkipped == 0, "no lines skipped while loading");
+
+    TrainModule trains(std::move(loaded));
+    SearchModule search(trains);
+
+    start = Clock::now();
+    auto results = search.bySourceDest("Bengaluru", "Chennai");
+    report("search by source and destination", elapsedMs(start));
+    check(!results.empty(), "source/destination search returns matches");
+    for (const Train& t : results) {
+        check(t.source == "Bengaluru" && t.destination == "Chennai",
+              "every result matches the requested route");
+    }
+
+    start = Clock::now();
+    results = search.bySourceDest("  bengaluru ", "");
+    report("search by source only (case/space insensitive)", elapsedMs(start));
+    check(!results.empty(), "source-only search returns matches");
+
+    start = Clock::now();
+    results = search.bySourceDest("", "Mumbai");
+    report("search by destination only", elapsedMs(start));
+    check(!results.empty(), "destination-only search returns matches");
+
+    start = Clock::now();
+    results = search.byTrainNo(10000 + kTrainCount - 1);
+    report("search by train number (last record)", elapsedMs(start));
+    check(results.size() == 1, "last train is found by number");
+
+    start = Clock::now();
+    results = search.byTrainNo(99);
+    report("search by train number (no match)", elapsedMs(start));
+    check(results.empty(), "missing train number returns no results");
+
+    // Worst case: 100 consecutive searches must also stay under the limit
+    // in total, so a single search is far below the requirement.
+    start = Clock::now();
+    for (int i = 0; i < 100; ++i) {
+        results = search.bySourceDest(cities[i % cities.size()],
+                                      cities[(i + 3) % cities.size()]);
+    }
+    report("100 consecutive route searches (total)", elapsedMs(start));
+
+    // Booking on a train in a 10,000-train data set.
+    ValidationModule validation;
+    FareModule fares(trains);
+    TicketModule tickets(bookings);
+    BookingModule booking(trains, bookings, validation, fares, tickets, files);
+    Passenger p;
+    p.name = "Asha Rao";
+    p.age = 25;
+    p.gender = 'F';
+    p.contact = "9876543210";
+    Booking created;
+    start = Clock::now();
+    const Status status = booking.createBooking(10000 + 5000, p, created);
+    report("book one ticket in a 10,000-train data set", elapsedMs(start));
+    check(status == Status::OK, "booking succeeds with 10,000 trains loaded");
+
+    fs::current_path(original);
+    std::error_code ec;
+    fs::remove_all(temp, ec);
+
+    if (failures != 0) {
+        std::cerr << failures << " check(s) failed.\n";
+        return 1;
+    }
+    std::cout << "All TC-NFR-01 checks passed.\n";
+    return 0;
+}
