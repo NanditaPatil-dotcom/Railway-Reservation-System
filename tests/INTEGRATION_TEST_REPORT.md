@@ -96,3 +96,12 @@ The test output should be reviewed for failures before the integration changes a
 The test suite was executed locally using a C++17 compiler with warning checks enabled. The unified test runner completed successfully, including validation, booking, administrator, performance, seat-consistency and usability tests.
 
 Performance measurements may vary across machines. The recorded results demonstrate the observed behavior for this test run and do not guarantee the absence of all defects. Final verification depends on successful CI execution and review of the applicable acceptance criteria.
+
+## 10. Final Verification Checklist
+
+- [x] Application and available test suites executed locally.
+- [x] Test outcomes recorded in this report.
+- [ ] GitHub Actions CI passes for the pull request.
+- [ ] Reviewer confirms all applicable acceptance criteria.
+
+The remaining items must be confirmed during pull request review.
