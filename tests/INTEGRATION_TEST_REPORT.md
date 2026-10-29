@@ -77,3 +77,17 @@ used to reproduce the validation, booking and administrator test runs.
 **Final B15 acceptance:** Pending review of the complete test plan,
 verification of the final changes in CI, and confirmation that all applicable
 acceptance criteria have been satisfied.
+
+## 8. Reproducible Test Execution
+
+The complete local regression suite can be executed using the unified test runner:
+
+```bash
+chmod +x tests/run_all_tests.sh
+./tests/run_all_tests.sh
+```
+
+The runner compiles and executes the application and the available validation, booking, administrator, performance, seat-consistency and usability tests.
+
+The test output should be reviewed for failures before the integration changes are submitted for review. The GitHub Actions workflow must also pass before the pull request is considered ready to merge.
+
