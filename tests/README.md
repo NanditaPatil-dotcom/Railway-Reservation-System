@@ -12,4 +12,6 @@ Existing and planned module tests include:
 - CancellationModule: invalid PNR, repeated cancellation, seat release, and refund calculation.
 - FileModule: loading valid records, handling malformed records, and saving persistent data.
 
+- Non-functional (B14): search performance with 10,000 trains (`test_nfr_performance.cpp`), seat consistency after booking/cancellation (`test_nfr_seats.cpp`), and menu usability (`test_nfr_usability.sh`). Results are recorded in `NFR_TEST_REPORT.md`.
+
 Additional tests will be implemented as the corresponding module functionality becomes available.

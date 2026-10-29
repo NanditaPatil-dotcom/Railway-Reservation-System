@@ -1,0 +1,95 @@
+# B14 — Non-Functional Test Report
+
+**Issue:** #14 · **Requirements:** RT-NF001, RT-NF002, RT-NF003 · **Tests:** TC-NFR-01, TC-NFR-02, TC-NFR-03
+**Sprint 2 · Executed:** 29 October 2026
+**Environment:** Ubuntu 24.04, g++ 13.3 (`-std=c++17 -Wall -Wextra -pedantic`), 1 vCPU
+
+## Summary
+
+| Test case | Requirement | Command | Result |
+|---|---|---|---|
+| TC-NFR-01 Search performance | RT-NF001 | `./test_nfr_performance` | Pass |
+| TC-NFR-02 Seat consistency | RT-NF002 | `./test_nfr_seats` | Pass |
+| TC-NFR-03 Usability | RT-NF003 | `tests/test_nfr_usability.sh ./railway` | Pass |
+
+No failures were recorded. The existing validation, booking and admin test
+programs were re-run and also pass (no regression).
+
+## TC-NFR-01 — Performance (RT-NF001)
+
+**Criterion:** search completes within 2 seconds with up to 10,000 train records.
+**Method:** generate a `trains.txt` with 10,000 records, load it with
+`FileModule`, then time each search with `std::chrono::steady_clock`.
+
+| Operation | Time (ms) | Limit (ms) |
+|---|---|---|
+| Load 10,000 trains from file | 26.0 | 2000 |
+| Search by source and destination | 5.7 | 2000 |
+| Search by source only | 3.1 | 2000 |
+| Search by destination only | 3.4 | 2000 |
+| Search by train number (last record) | 0.16 | 2000 |
+| Search by train number (no match) | 0.09 | 2000 |
+| 100 consecutive route searches (total) | 568.6 | 2000 |
+| Book one ticket with 10,000 trains loaded | 0.35 | 2000 |
+
+Every operation is more than 300× faster than the limit for a single search.
+Timings vary by machine; the test fails only if the 2-second limit is exceeded.
+
+## TC-NFR-02 — Seat consistency (RT-NF002)
+
+**Criterion:** seat availability remains consistent after booking and cancellation.
+**Checks performed**
+
+- Availability drops by exactly one per booking; seats are allocated lowest-first.
+- A full train returns `NO_SEATS` and reports 0 available.
+- Cancelling releases exactly one seat, and the freed seat is reused.
+- Cancelling the same PNR twice does not release a second seat.
+- Invalid, unknown or rejected requests never change availability.
+- Bookings on one train never affect another train.
+- Availability after reloading `trains.txt` and `bookings.txt` equals the
+  in-memory availability.
+- A deterministic 600-operation mixed booking/cancellation run keeps the
+  invariant `available = total − confirmed bookings` with no duplicate
+  confirmed seat numbers.
+
+**Result:** all checks passed.
+
+## TC-NFR-03 — Usability (RT-NF003)
+
+**Criterion:** a user can complete a basic booking using the menu without
+external instructions.
+**Method:** `tests/test_nfr_usability.sh` drives the real `railway` program
+with typed input and checks what appears on screen.
+
+- The main menu lists every function and a way to exit.
+- Each booking prompt names what to enter (train number, name, age,
+  `Gender (M/F/O)`, mobile number).
+- A basic booking takes 6 inputs (1 menu choice + 5 fields) and ends with a
+  `BOOKING CONFIRMED` screen showing PNR, seat, fare and status.
+- The PNR shown can be used to retrieve the booking.
+- Search prompts explain that a blank field means "any".
+- Non-numeric input, out-of-range menu choices, unknown trains, invalid
+  passenger details and malformed PNRs each produce a plain-language message.
+- The program exits cleanly when input ends unexpectedly.
+
+**Result:** 30 of 30 checks passed.
+
+## Failures and observations
+
+No test failures. Observations for the team:
+
+- Seat availability is derived from confirmed bookings on each booking and
+  cancellation, so it cannot drift from the booking records.
+- Search is a linear scan; it meets the requirement with a large margin and
+  needs no indexing at the specified 10,000-record limit.
+- Usability was verified by scripted menu runs. A manual walkthrough by a
+  person who has not used the system can be added to this report if the
+  course requires it.
+
+## How to re-run
+
+```bash
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_nfr_performance.cpp src/BookingModule.cpp src/FareModule.cpp src/FileModule.cpp src/SearchModule.cpp src/TicketModule.cpp src/TrainModule.cpp src/ValidationModule.cpp -o test_nfr_performance && ./test_nfr_performance
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude tests/test_nfr_seats.cpp src/BookingModule.cpp src/FareModule.cpp src/FileModule.cpp src/TicketModule.cpp src/TrainModule.cpp src/ValidationModule.cpp -o test_nfr_seats && ./test_nfr_seats
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude src/*.cpp -o railway && tests/test_nfr_usability.sh ./railway
+```
