@@ -44,7 +44,7 @@ The system follows the three-layer design in the Software Architecture and Desig
 | Business logic | `ValidationModule`, `TrainModule`, `SearchModule`, `FareModule`, `TicketModule`, `BookingModule`, `AdminModule` |
 | Data access | `FileModule`, the only module that reads or writes `trains.txt` and `bookings.txt` |
 
-Cancellation and refund logic currently lives in `BookingModule`. `CancellationModule`, `RefundModule` and `SeatModule` exist as interface placeholders only.
+Cancellation, refund and seat allocation logic lives in `BookingModule`. The SAD also designed `CancellationModule`, `RefundModule` and `SeatModule`; these were not implemented and only their unused header files remain. This and the other differences from the SRS, SAD and Test Plan are explained in `docs/DEVIATIONS.md`.
 
 ## Project Structure
 
@@ -54,6 +54,8 @@ src/       Module implementations and the console entry point
 server/    Small HTTP server that exposes the C++ modules to the website
 web/       Website (HTML, CSS, JavaScript)
 tests/     Test sources, test runner and test reports
+docs/      Deviations from the baseline documents and the final traceability matrix
+demo/      Sprint 1 and Sprint 2 demo videos
 trains.txt, bookings.txt   Persistent data files
 ```
 
@@ -117,4 +119,20 @@ chmod +x tests/run_all_tests.sh
 ./tests/run_all_tests.sh
 ```
 
-The same checks run on every push through GitHub Actions (`.github/workflows/ci.yml`). Test reports are in `tests/`.
+The same checks run on every push through GitHub Actions (`.github/workflows/ci.yml`).
+
+## Documentation
+
+The SRS, SAD and Test Plan are in the team [`docs`](https://github.com/Railway-Reservation-Group15/docs) repository. The final project documentation is in this repository.
+
+| Document | Contents |
+|---|---|
+| `docs/DEVIATIONS.md` | Differences from the SRS, SAD and Test Plan, with explanations |
+| `docs/TRACEABILITY_MATRIX.md` | Each requirement mapped to its module, test case and evidence |
+| `tests/TEST_SUMMARY_REPORT.md` | Final results against the 35 Test Plan cases |
+| `tests/DEFECT_REPORT.md` | Defects found, fixed and still open |
+| `tests/SYSTEM_TEST_REPORT.md` | 42 manual system test cases |
+| `tests/INTEGRATION_TEST_REPORT.md` | Integration and regression testing (B15) |
+| `tests/NFR_TEST_REPORT.md` | Performance, seat consistency and usability (B14) |
+| `demo/sprint 1 demo.mp4` | Sprint 1 demo: console application |
+| `demo/sprint 2 demo.mp4` | Sprint 2 demo: website |
