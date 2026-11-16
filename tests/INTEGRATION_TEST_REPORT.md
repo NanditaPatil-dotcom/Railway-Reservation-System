@@ -74,9 +74,10 @@ used to reproduce the validation, booking and administrator test runs.
 
 **Local test execution:** Passed for all suites listed above.
 
-**Final B15 acceptance:** Pending review of the complete test plan,
-verification of the final changes in CI, and confirmation that all applicable
-acceptance criteria have been satisfied.
+**Final B15 acceptance:** Accepted. Pull request #34 passed the GitHub
+Actions build check and was merged by the Scrum Master on 30 October 2026,
+and issue #15 was closed. Results against the complete Test Plan are in
+`TEST_SUMMARY_REPORT.md`.
 
 ## 8. Reproducible Test Execution
 
@@ -101,7 +102,7 @@ Performance measurements may vary across machines. The recorded results demonstr
 
 - [x] Application and available test suites executed locally.
 - [x] Test outcomes recorded in this report.
-- [ ] GitHub Actions CI passes for the pull request.
-- [ ] Reviewer confirms all applicable acceptance criteria.
+- [x] GitHub Actions CI passes for the pull request (both runs on pull request #34 passed).
+- [x] Reviewer confirms all applicable acceptance criteria (pull request #34 merged on 30 October 2026).
 
-The remaining items must be confirmed during pull request review.
+Updated 16 November 2026 as part of B20.
